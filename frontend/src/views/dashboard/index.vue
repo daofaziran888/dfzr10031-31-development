@@ -60,6 +60,8 @@
       <span v-if="errorMessage" class="error-text">{{ errorMessage }}</span>
     </footer>
 
+    <ModelEvalBoard />
+
     <Teleport to="body">
       <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
         <div class="modal-card">
@@ -87,6 +89,7 @@
 import { onMounted, ref } from 'vue'
 
 import { request } from '@/api/client'
+import ModelEvalBoard from './ModelEvalBoard.vue'
 
 type Row = Record<string, string | number | null>
 

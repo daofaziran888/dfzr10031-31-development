@@ -3,6 +3,124 @@ from __future__ import annotations
 
 from typing import Any
 
+# 评估集样本：真实分类与样本分组属于评估集，不属于某个模型的预测结果。
+_EVAL_SAMPLE_SPECS: dict[str, list[tuple[str, str, str]]] = {
+    "EVAL-0001": [
+        ("S001", "通过", "个人"),
+        ("S002", "通过", "个人"),
+        ("S003", "拒绝", "个人"),
+        ("S004", "拒绝", "小微"),
+        ("S005", "人工复核", "小微"),
+    ],
+    "EVAL-0002": [
+        ("S101", "通过", "个人"),
+        ("S102", "通过", "个人"),
+        ("S103", "通过", "小微"),
+        ("S104", "通过", "小微"),
+        ("S105", "拒绝", "个人"),
+        ("S106", "拒绝", "个人"),
+        ("S107", "拒绝", "小微"),
+        ("S108", "拒绝", "小微"),
+        ("S109", "人工复核", "个人"),
+    ],
+}
+
+# 每个版本对评估集逐个样本登记一条结果，空预测即弃答。
+# 批次 EVAL-0001 对应题面五个样本：甲答两个全对，乙答其余三个仅对一个，覆盖完全不重叠。
+# 批次 EVAL-0002 两版本部分重叠：共同覆盖上乙更高，全评估集上甲更高，用于核对分母人群。
+_EVAL_RESULT_SPECS = [
+    # 题面五个样本：甲（MODE-0001）答 S001、S002 且都正确；乙（MODE-0002）答其余三个，仅 S003 正确。
+    (1, "EVAL-0001", "MODE-0001", "v1.2", [
+        ("S001", "通过", "通过"),
+        ("S002", "通过", "通过"),
+        ("S003", "拒绝", ""),
+        ("S004", "拒绝", ""),
+        ("S005", "人工复核", ""),
+    ]),
+    (1, "EVAL-0001", "MODE-0002", "v0.9", [
+        ("S001", "通过", ""),
+        ("S002", "通过", ""),
+        ("S003", "拒绝", "拒绝"),
+        ("S004", "拒绝", "通过"),
+        ("S005", "人工复核", "拒绝"),
+    ]),
+    (2, "EVAL-0002", "MODE-0001", "v1.3", [
+        ("S101", "通过", "通过"),
+        ("S102", "通过", "拒绝"),
+        ("S103", "通过", "通过"),
+        ("S104", "通过", ""),
+        ("S105", "拒绝", "拒绝"),
+        ("S106", "拒绝", "拒绝"),
+        ("S107", "拒绝", "拒绝"),
+        ("S108", "拒绝", "通过"),
+        ("S109", "人工复核", "人工复核"),
+    ]),
+    (2, "EVAL-0002", "MODE-0003", "v2.0", [
+        ("S101", "通过", "通过"),
+        ("S102", "通过", "通过"),
+        ("S103", "通过", ""),
+        ("S104", "通过", "通过"),
+        ("S105", "拒绝", "拒绝"),
+        ("S106", "拒绝", ""),
+        ("S107", "拒绝", ""),
+        ("S108", "拒绝", "拒绝"),
+        ("S109", "人工复核", ""),
+    ]),
+]
+
+_MINORITY_CLASS = "人工复核"
+
+
+def _eval_sample_rows() -> list[dict[str, Any]]:
+    batch_ids = {"EVAL-0001": 1, "EVAL-0002": 2}
+    rows: list[dict[str, Any]] = []
+    for batch_code, samples in _EVAL_SAMPLE_SPECS.items():
+        for sample_id, truth, group in samples:
+            rows.append({
+                "id": len(rows) + 1,
+                "批次ID": batch_ids[batch_code],
+                "评估批次": batch_code,
+                "样本编号": sample_id,
+                "真实分类": truth,
+                "样本分组": group,
+            })
+    return rows
+
+
+def _eval_result_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for batch_id, batch_code, model, version, samples in _EVAL_RESULT_SPECS:
+        for sample_id, truth, prediction in samples:
+            abstained = not prediction
+            needs_review = abstained or truth == _MINORITY_CLASS
+            reasons = []
+            if abstained:
+                reasons.append("少数类别弃答（模型未给出预测）" if truth == _MINORITY_CLASS else "模型弃答")
+            if truth == _MINORITY_CLASS:
+                reasons.append("金标为人工复核")
+            rows.append({
+                "id": len(rows) + 1,
+                "status": "已入账",
+                "pending": needs_review,
+                "abnormal": False,
+                "批次ID": batch_id,
+                "评估批次": batch_code,
+                "模型编号": model,
+                "模型版本": version,
+                "样本编号": sample_id,
+                "真实分类": truth,
+                "预测分类": prediction,
+                "预测状态": "弃答" if abstained else "已作答",
+                "样本分组": next(group for sid, _, group in _EVAL_SAMPLE_SPECS[batch_code] if sid == sample_id),
+                "人工复核": needs_review,
+                "复核原因": "；".join(reasons),
+                "复核结论": "",
+                "复核备注": "",
+                "汇入时间": "2026-11-12",
+            })
+    return rows
+
+
 SEED_ROWS: dict[str, list[dict[str, Any]]] = {
     "metric_def": [{'id': 1,
   'status': '草稿',
@@ -651,5 +769,28 @@ SEED_ROWS: dict[str, list[dict[str, Any]]] = {
   '操作时间': '2026-09-03',
   '变更内容': '数据审计样例3',
   '审计结果': '数据审计样例3',
-  '记录状态': '数据审计样例3'}]
+  '记录状态': '数据审计样例3'}],
+    "model_eval_batch": [{'id': 1,
+  'status': '已汇入',
+  'pending': False,
+  'abnormal': False,
+  '批次编号': 'EVAL-0001',
+  '评估集编号': 'SET-CREDIT-A',
+  '评估集名称': '信贷申请分类评估集 A',
+  '样本总数': 5,
+  '创建时间': '2026-11-10',
+  '说明': '5 个样本：甲只答 2 个且都正确，乙答其余 3 个仅 1 个正确，预测范围完全不重叠，用于核对共同覆盖分母。'},
+ {'id': 2,
+  'status': '已汇入',
+  'pending': False,
+  'abnormal': False,
+  '批次编号': 'EVAL-0002',
+  '评估集编号': 'SET-CREDIT-B',
+  '评估集名称': '信贷申请分类评估集 B',
+  '样本总数': 9,
+  '创建时间': '2026-11-12',
+  '说明': '9 个样本，两个版本覆盖部分重叠：全评估集上 B 更高，共同覆盖上 A 更高，用于核对主比较口径与覆盖缺口。'}],
+    "model_eval_sample": _eval_sample_rows(),
+    "model_eval_result": _eval_result_rows(),
+    "model_eval_comparison": []
 }

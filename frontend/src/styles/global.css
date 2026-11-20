@@ -42,3 +42,44 @@ body { margin: 0; background: #f6f8fb; color: #1f2937; }
 .modal-field span{font-size:13px;color:var(--muted)}
 .modal-field input{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px}
 .modal-foot{display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border);padding:12px 18px}
+
+/* 模型评估结果数据集 */
+.eval-panel { margin-top: 24px; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.panel-head h3 { margin: 0 0 4px; font-size: 16px; }
+.panel-desc { color: var(--muted); font-size: 13px; margin: 0; max-width: 720px; }
+.panel-actions { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.sub-head { margin: 16px 0 6px; font-size: 14px; }
+.sub-note { color: var(--muted); font-weight: normal; font-size: 12px; margin-left: 6px; }
+.hint-text { color: var(--muted); font-size: 12px; margin: 6px 0 12px; }
+.metric-line { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: #344054; margin: 6px 0; }
+.tag { display: inline-block; background: #eef2ff; color: #3538cd; border-radius: 4px; padding: 1px 6px; margin: 0 4px 2px 0; font-size: 12px; }
+.inline-field { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
+.inline-field select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: #fff; }
+.data-table.compact th, .data-table.compact td { padding: 6px 8px; font-size: 12px; }
+.data-table tbody tr.selected { background: #eff6ff; }
+.mini-input { padding: 4px 8px; border: 1px solid var(--border); border-radius: 5px; font-size: 12px; }
+.check-line { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.form-row { display: flex; gap: 12px; }
+.form-row .modal-field { flex: 1; }
+.modal-card.wide { width: 680px; }
+
+/* 看板分组评估视图 */
+.eval-board { margin-top: 24px; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.eval-board h3 { margin: 0; font-size: 16px; }
+.selector-row { margin: 12px 0; max-width: 720px; }
+.selector-row .inline-field { flex: 1; }
+.compare-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+.compare-card { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: #f9fafb; }
+.compare-label { display: block; color: var(--muted); font-size: 12px; }
+.compare-value { display: block; font-size: 22px; margin: 4px 0; }
+.compare-basis { color: #475467; font-size: 12px; margin: 2px 0; }
+.delta-up { color: #067647; font-weight: 600; }
+.delta-down { color: #b42318; font-weight: 600; }
+.delta-zero { color: var(--muted); }
+.basis-cell { font-size: 12px; color: #475467; }
+.basis-warn { display: block; color: #b42318; }
+.gap-cell { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.muted { color: var(--muted); }
+.opened-record { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
